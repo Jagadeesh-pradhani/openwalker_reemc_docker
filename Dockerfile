@@ -62,15 +62,22 @@ RUN sudo apt install ros-melodic-four-wheel-steering-msgs -y \
 # Openwalker
 RUN cd ~/ \
     && git clone --recursive https://github.com/TUM-ICS/openwalker.git \
-    && cd openwalkersource \
+    && cd openwalker \
     && /bin/bash -c "source /opt/ros/melodic/setup.bash" \
-    && ./doc/install/install.sh \
-    && rosinstall src/reemc /opt/ros/melodic doc/install/melodic.rosinstall \
+    && yes | ./doc/install/install.sh \
+    && rosinstall src/reemc /opt/ros/melodic doc/install/melodic.rosinstall
+    # && rosdep update \
+    # && rosdep install --from-paths src --ignore-src --rosdistro melodic -y --skip-keys="opencv2 pal_laser_filters speed_limit_node sensor_to_cloud hokuyo_node libdw-dev gmock walking_utils rqt_current_limit_controller simple_grasping_action reemc_init_offset_controller walking_controller" \
+    # && catkin build -DCATKIN_ENABLE_TESTING=0 -DCMAKE_BUILD_TYPE=Release
+
+
+RUN bash -c "source /opt/ros/melodic/setup.bash \
+    && cd /home/$USERNAME/openwalker \
     && rosdep update \
-    && rosdep install --from-paths src --ignore-src --rosdistro melodic -y --skip-keys="opencv2 pal_laser_filters speed_limit_node sensor_to_cloud hokuyo_node libdw-dev gmock walking_utils rqt_current_limit_controller simple_grasping_action reemc_init_offset_controller walking_controller" \
-    && catkin build -DCATKIN_ENABLE_TESTING=0 -DCMAKE_BUILD_TYPE=Release
-
-
+    && rosdep install --from-paths src --ignore-src --rosdistro melodic -y --skip-keys='opencv2 pal_laser_filters speed_limit_node sensor_to_cloud hokuyo_node libdw-dev gmock walking_utils rqt_current_limit_controller simple_grasping_action reemc_init_offset_controller walking_controller'"
+RUN bash -c "source /opt/ros/melodic/setup.bash \
+    && cd /home/$USERNAME/openwalker \
+    && catkin build -DCATKIN_ENABLE_TESTING=0 -DCMAKE_BUILD_TYPE=Release"
 
 
 
