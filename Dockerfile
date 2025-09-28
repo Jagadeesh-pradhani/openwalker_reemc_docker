@@ -59,24 +59,33 @@ RUN sudo apt install ros-melodic-four-wheel-steering-msgs -y \
     && sudo apt install ros-melodic-moveit-ros-planning-interface -y
 
 
-# Openwalker
+# reemc_ws
 RUN cd ~/ \
-    && git clone --recursive https://github.com/TUM-ICS/openwalker.git \
-    && cd openwalker \
+    && git clone --recursive https://github.com/TUM-ICS/openwalker.git  reemc_ws\
+    && cd reemc_ws \
     && /bin/bash -c "source /opt/ros/melodic/setup.bash" \
     && yes | ./doc/install/install.sh \
     && rosinstall src/reemc /opt/ros/melodic doc/install/melodic.rosinstall
-    # && rosdep update \
-    # && rosdep install --from-paths src --ignore-src --rosdistro melodic -y --skip-keys="opencv2 pal_laser_filters speed_limit_node sensor_to_cloud hokuyo_node libdw-dev gmock walking_utils rqt_current_limit_controller simple_grasping_action reemc_init_offset_controller walking_controller" \
-    # && catkin build -DCATKIN_ENABLE_TESTING=0 -DCMAKE_BUILD_TYPE=Release
 
 
 RUN bash -c "source /opt/ros/melodic/setup.bash \
-    && cd /home/$USERNAME/openwalker \
+    && cd /home/$USERNAME/reemc_ws \
     && rosdep update \
     && rosdep install --from-paths src --ignore-src --rosdistro melodic -y --skip-keys='opencv2 pal_laser_filters speed_limit_node sensor_to_cloud hokuyo_node libdw-dev gmock walking_utils rqt_current_limit_controller simple_grasping_action reemc_init_offset_controller walking_controller'"
+
+# Comment out "Loading controller" log line
+RUN sed -i '/rospy.loginfo("Loading controller: "+name)/ s/^/#/' \
+    /home/$USERNAME/reemc_ws/src/reemc/ros_control/controller_manager/scripts/spawner \
+    && RUN sed -i '/rospy.loginfo("Controller Spawner: Loaded controllers: %s" % .*)/ s/^/#/' \
+    /home/$USERNAME/reemc_ws/src/reemc/ros_control/controller_manager/scripts/spawner
+
+RUN sed -i 's/^\([[:space:]]*\)rospy.loginfo("Started controllers: %s" % .*)/\1pass/' \
+    /home/$USERNAME/reemc_ws/src/reemc/ros_control/controller_manager/scripts/spawner
+
+RUN grep -rl 'open_walker' /home/$USERNAME/reemc_ws/src/ | xargs sed -i -e "s/open_walker/reemc_walker/g"
+
 RUN bash -c "source /opt/ros/melodic/setup.bash \
-    && cd /home/$USERNAME/openwalker \
+    && cd /home/$USERNAME/reemc_ws \
     && catkin build -DCATKIN_ENABLE_TESTING=0 -DCMAKE_BUILD_TYPE=Release"
 
 
